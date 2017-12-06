@@ -33,6 +33,16 @@ Button sendData,reset;
         View v=inflater.inflate(R.layout.fragment_connection_to_lock_options, container, false);
         sendData= (Button) v.findViewById(R.id.sendData);
         reset= (Button) v.findViewById(R.id.reset);
+        sendData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ConnectToLocks fragment = new ConnectToLocks();
+                FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out);
+                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG).addToBackStack(null);
+                fragmentTransaction.commitAllowingStateLoss();
+            }
+        });
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
