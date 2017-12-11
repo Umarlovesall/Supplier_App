@@ -102,7 +102,7 @@ public class SupplierList extends Fragment {
         public String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "http://192.168.0.110:8084/Moaddi4/operator/serviesOperatorSupplierDetails.htm";
+                String URL = "http://192.168.0.107:8084/Moaddi4/operator/serviesOperatorSupplierDetails.htm";
                 //First Static then Dynamic afterwards
                 //Sending static userRoleId as of now.i.e. "13" static which will later be changed to dynamic
                 BarcodeResultSend b=new BarcodeResultSend();
