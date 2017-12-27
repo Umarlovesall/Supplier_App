@@ -137,7 +137,7 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         protected String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "http://192.168.0.109:8084/Moaddi1/supplier/serviesmachines.htm";
+                String URL = "https://www.moaddi.com/moaddi/supplier/serviesmachines.htm";
                 //Create and set object 'l' of bean class LoginForm,which we will POST then
                 BarcodeResultSend b=new BarcodeResultSend();
                 b.setUserRoleId(Login.userRoleId);
