@@ -158,22 +158,20 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         protected void onPostExecute(String lf) {
             //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
             //tv.setText(lf.getUsername()+lf.getPassword());
-            try {
-                JSONArray j = new JSONArray(lf);
-                for (i=0;i<j.length();i++)
-                {
-                    JSONObject l =j.getJSONObject(i);
-                    al.add(l.getString("machineSno"));
-                }
-                aa.notifyDataSetChanged();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+
             // Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
             if (lf!=null) {
-                MachineDetails = lf;
-                et.putString("MachineDetails",lf).commit();
-                //db.updateLockData(lockDetails);
+                try {
+                    JSONArray j = new JSONArray(lf);
+                    for (i=0;i<j.length();i++)
+                    {
+                        JSONObject l =j.getJSONObject(i);
+                        al.add(l.getString("machineSno"));
+                    }
+                    aa.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
