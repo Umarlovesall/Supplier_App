@@ -1,6 +1,7 @@
 package com.moadd.operatorApp.fragment;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,6 +20,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.zxing.client.android.CaptureActivity;
 import com.moadd.operatorApp.BarcodeResultSend;
 //import com.moadd.operatorApp.DatabaseLocksOperator;
 import com.moadd.operatorApp.Login;
@@ -34,6 +37,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
 import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
 
@@ -49,6 +54,8 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
     ListView lv;
     ArrayAdapter aa;
     String MachineDetails;
+    ImageView iv;
+    String contents;
     private NetworkStateReceiver networkStateReceiver;
     //DatabaseLocksOperator db;
     ImageView show;
@@ -57,8 +64,6 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
     public AllMachines() {
         // Required empty public constructor
     }
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -69,7 +74,8 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,al);
         lv.setAdapter(aa);
         searchBox = (EditText) v.findViewById(R.id.searchBox);
-        sp=getActivity().getSharedPreferences("Locks",MODE_PRIVATE);
+        iv= (ImageView) v.findViewById(R.id.iv);
+        sp=getActivity().getSharedPreferences("AllLocksItemsMachines",MODE_PRIVATE);
         et=sp.edit();
         show= (ImageView) v.findViewById(R.id.showlocks);
         networkStateReceiver = new NetworkStateReceiver();
@@ -81,6 +87,15 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         }*/
         MachineDetails=sp.getString("MachineDetails",null);
         new HttpRequestTask().execute();
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                intent.setAction("com.google.zxing.client.android.SCAN");
+                intent.putExtra("SAVE_HISTORY", false);
+                startActivityForResult(intent, 0);
+            }
+        });
         //Toast.makeText(getActivity(),lockDetails,Toast.LENGTH_LONG).show();
        /* searchBox.addTextChangedListener(new TextWatcher() {
 
@@ -131,7 +146,20 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         });
         return v;
     }
-
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // check if the request code is same as what is passed  here it is 2
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                contents = data.getStringExtra("result");
+                searchBox.setText(contents);
+            } else if (resultCode == RESULT_CANCELED) {
+                // Handle cancel
+                Toast.makeText(getActivity(), "No Output", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
     private class HttpRequestTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... params) {
@@ -156,10 +184,6 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
 
         @Override
         protected void onPostExecute(String lf) {
-            //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
-            //tv.setText(lf.getUsername()+lf.getPassword());
-
-            // Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
             if (lf!=null) {
                 try {
                     JSONArray j = new JSONArray(lf);
@@ -172,7 +196,26 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                // Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
+                MachineDetails = lf;
+                et.putString("MachineDetails",lf).commit();
+                //db.updateLockData(lockDetails);
             }
+            else if (MachineDetails!=null)
+            {
+                try {
+                    JSONArray j = new JSONArray(MachineDetails);
+                    for (i=0;i<j.length();i++)
+                    {
+                        JSONObject l =j.getJSONObject(i);
+                        al.add(l.getString("machineSno"));
+                    }
+                    aa.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
     }
     @Override

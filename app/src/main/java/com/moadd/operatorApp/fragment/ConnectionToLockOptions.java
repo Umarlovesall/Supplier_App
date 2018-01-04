@@ -36,7 +36,8 @@ Button sendData,reset;
         sendData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ConnectToLocks fragment = new ConnectToLocks();
+                //ConnectToLocks fragment = new ConnectToLocks();
+                OneByOne fragment = new OneByOne();
                 FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out);
                 fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG).addToBackStack(null);

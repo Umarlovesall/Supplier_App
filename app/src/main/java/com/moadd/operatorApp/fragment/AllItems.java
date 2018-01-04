@@ -1,6 +1,7 @@
 package com.moadd.operatorApp.fragment;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,6 +20,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.zxing.client.android.CaptureActivity;
 import com.moadd.operatorApp.BarcodeResultSend;
 //import com.moadd.operatorApp.DatabaseLocksOperator;
 import com.moadd.operatorApp.Login;
@@ -34,6 +37,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
 import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
 
@@ -44,11 +49,12 @@ import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
 public class AllItems extends Fragment implements NetworkStateReceiver.NetworkStateReceiverListener {
     public  static String clickedItem;
     int i;
+    ImageView iv;
     ArrayList<String> al;
     EditText searchBox;
     ListView lv;
     ArrayAdapter aa;
-    String ItemsDetails;
+    String ItemsDetails,contents;
     private NetworkStateReceiver networkStateReceiver;
     //DatabaseLocksOperator db;
     ImageView show;
@@ -69,7 +75,8 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,al);
         lv.setAdapter(aa);
         searchBox = (EditText) v.findViewById(R.id.searchBox);
-        sp=getActivity().getSharedPreferences("Locks",MODE_PRIVATE);
+        iv= (ImageView) v.findViewById(R.id.iv);
+        sp=getActivity().getSharedPreferences("AllLocksItemsMachines",MODE_PRIVATE);
         et=sp.edit();
         show= (ImageView) v.findViewById(R.id.showlocks);
         networkStateReceiver = new NetworkStateReceiver();
@@ -81,6 +88,15 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         }*/
         ItemsDetails=sp.getString("ItemsDetails",null);
         new HttpRequestTask().execute();
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                intent.setAction("com.google.zxing.client.android.SCAN");
+                intent.putExtra("SAVE_HISTORY", false);
+                startActivityForResult(intent, 0);
+            }
+        });
         //Toast.makeText(getActivity(),lockDetails,Toast.LENGTH_LONG).show();
        /* searchBox.addTextChangedListener(new TextWatcher() {
 
@@ -131,13 +147,27 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         });
         return v;
     }
-
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // check if the request code is same as what is passed  here it is 2
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                contents = data.getStringExtra("result");
+                searchBox.setText(contents);
+            } else if (resultCode == RESULT_CANCELED) {
+                // Handle cancel
+                Toast.makeText(getActivity(), "No Output", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
     private class HttpRequestTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "https://www.moaddi.com/moaddi/supplier/serviesitems.htm";
+                String URL = "https://www.moaddi.com/moaddi/supplier/serviessupplieritemsthroughbarcode1.htm";
+               // String URL = "https://192.168.0./serviessupplieritemsthroughbarcode1.htm";
                 //Create and set object 'l' of bean class LoginForm,which we will POST then
                 BarcodeResultSend b=new BarcodeResultSend();
                 b.setUserRoleId(Login.userRoleId);
@@ -158,25 +188,41 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         protected void onPostExecute(String lf) {
             //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
             //tv.setText(lf.getUsername()+lf.getPassword());
-            try {
-                JSONArray j = new JSONArray(lf);
-                for (i=0;i<j.length();i++)
-                {
-                    JSONObject l =j.getJSONObject(i);
-                    al.add(l.getString("itemBarcode") + "  " +l.getString("itemName"));
-                }
-                aa.notifyDataSetChanged();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            // Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
             if (lf!=null) {
+                try {
+                    JSONArray j = new JSONArray(lf);
+                    for (i=0;i<j.length();i++)
+                    {
+                        JSONObject l =j.getJSONObject(i);
+                        al.add(l.getString("itemBarcode"));
+                    }
+                    aa.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                // Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
                 ItemsDetails = lf;
                 et.putString("ItemsDetails",lf).commit();
                 //db.updateLockData(lockDetails);
             }
+            else if (ItemsDetails!=null)
+            {
+                try {
+                    JSONArray j = new JSONArray(ItemsDetails);
+                    for (i=0;i<j.length();i++)
+                    {
+                        JSONObject l =j.getJSONObject(i);
+                        al.add(l.getString("itemBarcode"));
+                    }
+                    aa.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
-    }
+        }
+
     @Override
     public void networkAvailable() {
         new HttpRequestTask().execute();
