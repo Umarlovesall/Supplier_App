@@ -215,6 +215,7 @@ public class OneByOne extends Fragment {
                         Toast.makeText(getActivity(),"Item doesn't belong to the Supplier",Toast.LENGTH_SHORT).show();
                     }
                 }
+              // new HttpRequestTask2().execute();
             }
         });
         setup.setOnClickListener(new View.OnClickListener() {
@@ -333,6 +334,7 @@ public class OneByOne extends Fragment {
                         //Switch ON wifi
                         wm.setWifiEnabled(true);*/
                         messageFromClient= "Data Exchange Successful : " + messageFromClient;
+                        new HttpRequestTask2().execute();
                         //Toast.makeText(getActivity(), "Password sent Successfully",Toast.LENGTH_LONG).show();
                         //Here save all that data to send later to the website too
                         //new HttpRequestTask2().execute();
@@ -376,10 +378,10 @@ public class OneByOne extends Fragment {
                         @Override
                         public void run() {
                             Toast.makeText(getActivity(),message,Toast.LENGTH_LONG).show();
-                            if (message.contains("SUCCESS3"))
+                            /*if (message.contains("SUCCESS3"))
                             {
                                 new HttpRequestTask2().execute();
-                            }
+                            }*/
                             //For Data showing in listview down below :
                            /* if (message.contains("SUCCESS3"))
                             {
@@ -458,39 +460,6 @@ public class OneByOne extends Fragment {
             }
         }
 
-    }
-    public class MyAdapter extends BaseAdapter {
-
-
-
-        @Override
-        public int getCount() {
-            return al.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return al.get(i);
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-            View vs=getActivity().getLayoutInflater().inflate(R.layout.row_one_by_one,null);
-            ItemLockform1 lp = history.get(i);
-            TextView tv1 = (TextView) vs.findViewById(R.id.tv1);
-            TextView tv2 = (TextView) vs.findViewById(R.id.tv2);
-            TextView tv3 = (TextView) vs.findViewById(R.id.tv3);
-            TextView tv4 = (TextView) vs.findViewById(R.id.tv4);
-            tv1.setText(LockText.getText().toString().trim());
-            tv2.setText(ItemText.getText().toString().trim());
-            tv3.setText(quantity.getText().toString().trim());
-            tv4.setText(""+lp.getPrice());
-            return vs;
-        }
     }
    /* private class HttpRequestTask extends AsyncTask<Void, Void, String> {
         @Override
@@ -613,25 +582,29 @@ public class OneByOne extends Fragment {
             //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
             //tv.setText(la);
             //Toast.makeText(getActivity(),la,Toast.LENGTH_LONG).show();
-            if (la!=null) {
-                try {
-                    JSONObject j = new JSONObject(la);
-                    ilf.setPrice(j.getDouble("price"));
-                    ilf.setItemId(j.getLong("itemId"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                if (la.equals("ItemIsNotThere"))
+                {
+                    Toast.makeText(getActivity(),"Item Doesn't belong to this Supplier",Toast.LENGTH_LONG).show();
                 }
-               //new HttpRequestTask2().execute();
-                hotutil.startHotSpot(true);
-            }
-            else if (la.equals("ItemIsNotThere"))
-            {
-                Toast.makeText(getActivity(),"Lock Doesn't belong to this Supplier",Toast.LENGTH_LONG).show();
-            }
-            else
-            {
-                Toast.makeText(getActivity(),"Poor Connection",Toast.LENGTH_LONG).show();
-            }
+                else if(la.equals(""))
+                {
+                    Toast.makeText(getActivity(),"Poor Connection",Toast.LENGTH_LONG).show();
+                }
+                else {
+                    try {
+                        Toast.makeText(getActivity(), la, Toast.LENGTH_LONG).show();
+                        JSONObject j = new JSONObject(la);
+                        ilf.setPrice(j.getDouble("price"));
+                        ilf.setItemId(j.getLong("itemId"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    //new HttpRequestTask2().execute();
+                    hotutil.startHotSpot(true);
+                }
+
+
         }
 
     }
@@ -642,11 +615,22 @@ public class OneByOne extends Fragment {
         public  String doInBackground(Void... params) {
             try {
                 String URL = "https://www.moaddi.com/moaddi/supplier/serviesitemlock.htm";
-               // String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviesitemlock.htm";
+                //String URL = "http://192.168.0.107:8080/Moaddi1/supplier/serviesitemlock.htm";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-                history.add(ilf);
-                m.notifyDataSetChanged();
+                ilf.setExpireDate(dp2.getText().toString().substring(9));
+                ilf.setProductionDate(dp1.getText().toString().substring(13));
+                ilf.setIquantity(Long.valueOf(quantity.getText().toString()));
+               /* ilf.setUserRoleId(Long.valueOf("21"));
+                ilf.setPassword("abcde");
+                ilf.setProductionDate("10-5-2010");
+                ilf.setExpireDate("10-2-2017");
+                ilf.setIquantity(Long.valueOf("5"));
+                ilf.setItemId(Long.valueOf("42"));
+                ilf.setLockId(Long.valueOf("43"));
+                ilf.setPrice(10.00);*/
+               /* history.add(ilf);
+                m.notifyDataSetChanged();*/
                 la = restTemplate.postForObject(URL,ilf,String.class);
                 return la;
             } catch (Exception e) {
@@ -658,7 +642,62 @@ public class OneByOne extends Fragment {
         @Override
         protected void onPostExecute(String  la)
         {
+           /* history.add(ilf);
+            m.notifyDataSetChanged();*/
+            Toast.makeText(getActivity(),""+ilf.getProductionDate()+" "+ilf.getExpireDate()+" "+ilf.getItemId()+" "+ilf.getLockId()+" "+ilf.getPrice()+" "+ilf.getPassword(),Toast.LENGTH_LONG).show();
             Toast.makeText(getActivity(),la,Toast.LENGTH_LONG).show();
+            if (la!=null)
+            {
+if (la.equals("success") || la.equals("success1"))
+{
+    Toast.makeText(getActivity(),"Item and lock connection successfull",Toast.LENGTH_LONG).show();
+    history.add(ilf);
+    m.notifyDataSetChanged();
+}
+else
+{
+    Toast.makeText(getActivity(),la,Toast.LENGTH_SHORT).show();
+}
+
+            }
+            else
+            {
+                Toast.makeText(getActivity(),"Poor Internet Connection",Toast.LENGTH_LONG).show();
+            }
+
+        }
+    }
+    public class MyAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return al.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return al.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            View vs=getActivity().getLayoutInflater().inflate(R.layout.row_one_by_one,null);
+            ItemLockform1 lp = history.get(i);
+            TextView tv1 = (TextView) vs.findViewById(R.id.tv1);
+            TextView tv2 = (TextView) vs.findViewById(R.id.tv2);
+            TextView tv3 = (TextView) vs.findViewById(R.id.tv3);
+            TextView tv4 = (TextView) vs.findViewById(R.id.tv4);
+            TextView tv5 = (TextView) vs.findViewById(R.id.tv5);
+            tv1.setText(LockText.getText().toString().trim());
+            tv2.setText(ItemText.getText().toString().trim());
+            tv3.setText(quantity.getText().toString().trim());
+            tv4.setText(""+lp.getPrice());
+            tv5.setText("");
+            return vs;
         }
     }
 }
