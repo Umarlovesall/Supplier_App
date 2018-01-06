@@ -167,10 +167,11 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
             try {
                 //The link on which we have to POST data and in return it will return some data
                 String URL = "https://www.moaddi.com/moaddi/supplier/serviessupplieritemsthroughbarcode1.htm";
-               // String URL = "https://192.168.0./serviessupplieritemsthroughbarcode1.htm";
+                //String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviessupplieritemsthroughbarcode1.htm";
                 //Create and set object 'l' of bean class LoginForm,which we will POST then
                 BarcodeResultSend b=new BarcodeResultSend();
                 b.setUserRoleId(Login.userRoleId);
+                //b.setUserRoleId("21");
                 //Use RestTemplate to POST(within Asynctask)
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -188,7 +189,9 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         protected void onPostExecute(String lf) {
             //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
             //tv.setText(lf.getUsername()+lf.getPassword());
+           //Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
             if (lf!=null) {
+                //Saving all details of the items in separate field so as to use it later for fetching "price" and other details of the items.
                 try {
                     JSONArray j = new JSONArray(lf);
                     for (i=0;i<j.length();i++)

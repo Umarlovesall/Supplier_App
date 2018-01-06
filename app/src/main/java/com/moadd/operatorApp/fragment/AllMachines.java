@@ -185,6 +185,8 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         @Override
         protected void onPostExecute(String lf) {
             if (lf!=null) {
+                //Saving all details of the machines in separate field so as to use it later for fetching "price" and other details of the items.
+                et.putString("machinesAllData",lf).apply();
                 try {
                     JSONArray j = new JSONArray(lf);
                     for (i=0;i<j.length();i++)

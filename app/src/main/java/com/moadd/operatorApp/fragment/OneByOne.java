@@ -6,24 +6,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.client.android.CaptureActivity;
+import com.moadd.operatorApp.BarcodeResultSend;
+import com.moadd.operatorApp.ConnectedItemPojo;
+import com.moadd.operatorApp.ItemLockform1;
+import com.moadd.operatorApp.Login;
 import com.moadd.operatorApp.wifiHotSpots;
 import com.moaddi.operatorApp.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -35,6 +45,7 @@ import java.util.Calendar;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.MODE_PRIVATE;
 
 
 /**
@@ -42,17 +53,21 @@ import static android.app.Activity.RESULT_OK;
  */
 public class OneByOne extends Fragment {
     TextView dp2,dp1;
+    ArrayList<ItemLockform1> history;
+    MyAdapter m;
+    ListView lv;
     DatePickerDialog datePickerDialog;
     wifiHotSpots hotutil;
     String message = "";
     ServerSocket serverSocket;
     String msgReply;
-    SharedPreferences sp;
+    SharedPreferences sp,allItemsDetails;
     String sentPassword,contents;
     Button barLock,barItem,check,setup;
     EditText LockText,ItemText,quantity;
     ArrayList<String> al;
     WifiManager wm;
+    ItemLockform1 ilf;
     public OneByOne() {
         // Required empty public constructor
     }
@@ -64,8 +79,14 @@ public class OneByOne extends Fragment {
         // Inflate the layout for this fragment
         View v= inflater.inflate(R.layout.fragment_one_by_one, container, false);
         wm = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        history=new ArrayList<ItemLockform1>();
         al=new ArrayList<String>();
+        lv= (ListView) v.findViewById(R.id.listview);
+        m=new MyAdapter();
+        lv.setAdapter(m);
+        ilf=new ItemLockform1();
         sp=getActivity().getSharedPreferences("Credentials", Context.MODE_PRIVATE);
+        allItemsDetails=getActivity().getSharedPreferences("AllLocksItemsMachines",MODE_PRIVATE);
         quantity= (EditText) v.findViewById(R.id.enteredQuantity);
         barLock= (Button) v.findViewById(R.id.lockBarcodeRead);
         barItem= (Button) v.findViewById(R.id.itemBarcodeRead);
@@ -74,6 +95,8 @@ public class OneByOne extends Fragment {
         LockText = (EditText) v.findViewById(R.id.enteredLockBarcode);
         ItemText= (EditText) v.findViewById(R.id.enteredItemBarcode);
         hotutil=new wifiHotSpots(getActivity());
+        ilf.setUserRoleId(Long.valueOf(Login.userRoleId));
+        //ilf.setUserRoleId(Long.valueOf("21"));
        // hotutil.startHotSpot(true);
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
@@ -199,11 +222,12 @@ public class OneByOne extends Fragment {
             public void onClick(View v) {
                 if (!quantity.getText().toString().equals(""))
                 {
-                  if (!LockText.getText().toString().equals("") )//&& !ItemText.getText().toString().equals(""))
+                  if (!LockText.getText().toString().equals("") && !ItemText.getText().toString().equals(""))
                   {
                     if (!dp1.getText().toString().equals("Select Production Date")&& !dp2.getText().toString().equals("Select Expiry Date"))
                     {
-                        hotutil.startHotSpot(true);
+                        //hotutil.startHotSpot(true);
+                        new HttpRequestTask().execute();
                     }
                     else
                     {
@@ -293,22 +317,25 @@ public class OneByOne extends Fragment {
                     //else if (messageFromClient.equals("SUCCESS2"))
                     else if (messageFromClient.contains("SUCCESS2"))
                     {
-                        msgReply="~"+(int) (Math.random() * 10000);
+                        String x=""+(int) (Math.random() * 10000);
+                        msgReply="~"+x;
                         sentPassword = "Password : "+ msgReply.replace('~',' ').trim();
                         messageFromClient= "Password Successfully Sent : " +msgReply;
+                        ilf.setPassword(x);
                         // Toast.makeText(getActivity(), "Supplier ID matched",Toast.LENGTH_LONG).show();
                         //Here send all that data to website too
                     }
                     else if (messageFromClient.equals("SUCCESS3"))
                     {
                         msgReply="DISCONNECT";
-                        messageFromClient= "Data Exchange Successful : " + messageFromClient;
-                        //Toast.makeText(getActivity(), "Password sent Successfully",Toast.LENGTH_LONG).show();
-                        //Close Hotspot
+                       /* //Close Hotspot
                         hotutil.startHotSpot(false);
                         //Switch ON wifi
-                        wm.setWifiEnabled(true);
-                        //Here send all that data to website too
+                        wm.setWifiEnabled(true);*/
+                        messageFromClient= "Data Exchange Successful : " + messageFromClient;
+                        //Toast.makeText(getActivity(), "Password sent Successfully",Toast.LENGTH_LONG).show();
+                        //Here save all that data to send later to the website too
+                        //new HttpRequestTask2().execute();
                     }
                     else if (messageFromClient.equals("1234567890"))//(Case for serial number)
                     {
@@ -337,7 +364,10 @@ public class OneByOne extends Fragment {
                         msgReply ="DISCONNECT";
                     }
                     count++;
-                    message += "#" + count + " from " + socket.getInetAddress()
+                   /* message += "#" + count + " from " + socket.getInetAddress()
+                            + ":" + socket.getPort() + "\n"
+                            + "Message from client: " + messageFromClient + "\n";*/
+                    message = "#" + count + " from " + socket.getInetAddress()
                             + ":" + socket.getPort() + "\n"
                             + "Message from client: " + messageFromClient + "\n";
 
@@ -346,6 +376,36 @@ public class OneByOne extends Fragment {
                         @Override
                         public void run() {
                             Toast.makeText(getActivity(),message,Toast.LENGTH_LONG).show();
+                            if (message.contains("SUCCESS3"))
+                            {
+                                new HttpRequestTask2().execute();
+                            }
+                            //For Data showing in listview down below :
+                           /* if (message.contains("SUCCESS3"))
+                            {
+                                //Here set the data in the below listview
+                                ConnectedItemPojo c=new ConnectedItemPojo();
+                                c.setLockBarcode(LockText.getText().toString().trim());
+                                c.setItemBarcode(ItemText.getText().toString().trim());
+                                c.setQuantity(quantity.getText().toString().trim());
+                                String str= allItemsDetails.getString("ItemsDetails","");
+                                try {
+                                    JSONArray j = new JSONArray(str);
+                                    for (int i=0;i<j.length();i++)
+                                    {
+                                        JSONObject l =j.getJSONObject(i);
+                                        if (ItemText.getText().toString().trim().equals(l.getString("itemBarcode")))
+                                        {
+                                            c.setPrice(""+Integer.parseInt(quantity.getText().toString().trim())*Integer.parseInt(l.getString("price")));
+                                            history.add(c);
+                                            m.notifyDataSetChanged();
+                                        }
+                                    }
+                                    //aa.notifyDataSetChanged();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }*/
                             //password.setText(sentPassword);
                             /*If (message.contains(SUCCESS3))
                             {
@@ -355,9 +415,7 @@ public class OneByOne extends Fragment {
                         }
                     });
 
-                    /*String msgReply = "Hotspot Name : "+" Umar "+"\n" + "Hotspot Password : "+" 1234ab "+"\n"+"Password Requirement : "+" Yes "+"\n";*/
                     dataOutputStream.writeUTF(msgReply);
-
                 }
             } catch (IOException e) {
                 // TODO Auto-generated catch block
@@ -400,5 +458,207 @@ public class OneByOne extends Fragment {
             }
         }
 
+    }
+    public class MyAdapter extends BaseAdapter {
+
+
+
+        @Override
+        public int getCount() {
+            return al.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return al.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            View vs=getActivity().getLayoutInflater().inflate(R.layout.row_one_by_one,null);
+            ItemLockform1 lp = history.get(i);
+            TextView tv1 = (TextView) vs.findViewById(R.id.tv1);
+            TextView tv2 = (TextView) vs.findViewById(R.id.tv2);
+            TextView tv3 = (TextView) vs.findViewById(R.id.tv3);
+            TextView tv4 = (TextView) vs.findViewById(R.id.tv4);
+            tv1.setText(LockText.getText().toString().trim());
+            tv2.setText(ItemText.getText().toString().trim());
+            tv3.setText(quantity.getText().toString().trim());
+            tv4.setText(""+lp.getPrice());
+            return vs;
+        }
+    }
+   /* private class HttpRequestTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                //The link on which we have to POST data and in return it will return some data
+                //String URL = "https://www.moaddi.com/moaddi/supplier/serviessupplieritemsthroughbarcode1.htm";
+                String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviessupplieritemsthroughbarcode1.htm";
+                //Create and set object 'l' of bean class LoginForm,which we will POST then
+                ItemLockform1 ilf=new ItemLockform1();
+                ilf.setUserRoleId(Long.valueOf(Login.userRoleId));
+                ilf.setExpireDate(dp2.getText().toString());
+                ilf.setProductionDate(dp1.getText().toString());
+                ilf.setIquantity(Long.valueOf(quantity.getText().toString()));
+                //b.setUserRoleId(Login.userRoleId);
+               // b.setUserRoleId("21");
+                //Use RestTemplate to POST(within Asynctask)
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                //postforobject method POSTs data to server and brings back LoginForm object format data.
+                String lf = restTemplate.postForObject(URL, ilf, String.class);
+                return lf;
+            } catch (Exception e) {
+                Log.e("MainActivity", e.getMessage(), e);
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String lf) {
+            //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
+            //tv.setText(lf.getUsername()+lf.getPassword());
+            //Toast.makeText(getActivity(),lf,Toast.LENGTH_LONG).show();
+            if (lf!=null) {
+                //Saving all details of the items in separate field so as to use it later for fetching "price" and other details of the items.
+
+            }
+            else
+            {
+
+            }
+
+        }
+    }*/
+   public class HttpRequestTask extends AsyncTask<Void, Void,String > {
+       // String a=null;
+       String la=null;
+       @Override
+       public  String doInBackground(Void... params) {
+           try {
+               //The link on which we have to POST data and in return it will return some data
+               String URL = "https://www.moaddi.com/moaddi/supplier/servieschecklock.htm";
+               //String URL = "http://192.168.0.102:8080/Moaddi1/supplier/servieschecklock.htm";
+               BarcodeResultSend l = new BarcodeResultSend();
+               l.setUserRoleId(Login.userRoleId);
+               //l.setUserRoleId("21");
+               l.setBarcode(LockText.getText().toString().trim());
+               //Use RestTemplate to POST(within Asynctask)
+               RestTemplate restTemplate = new RestTemplate();
+               restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+               la = restTemplate.postForObject(URL,l,String.class);
+               return la;
+           } catch (Exception e) {
+               Log.e("LoginActivity", e.getMessage(), e);
+
+           }
+
+           return null;
+       }
+
+       @Override
+       protected void onPostExecute(String  la) {
+           //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
+          // Toast.makeText(getActivity(),la,Toast.LENGTH_LONG).show();
+           if (la!=null)
+           {
+               String arr[]=la.split("/");
+               ilf.setLockId(Long.valueOf(arr[0]));
+               new HttpRequestTask1().execute();
+           }
+           else if(la.equals("lockIsNotThere"))
+           {
+               Toast.makeText(getActivity(),"Lock Doesn't belong to this Supplier",Toast.LENGTH_LONG).show();
+           }
+           else
+           {
+               Toast.makeText(getActivity(),"Connection Error",Toast.LENGTH_LONG).show();
+           }
+       }
+
+   }
+    public class HttpRequestTask1 extends AsyncTask<Void, Void,String > {
+        // String a=null;
+        String la=null;
+        @Override
+        public  String doInBackground(Void... params) {
+            try {
+                //The link on which we have to POST data and in return it will return some data
+                String URL = "https://www.moaddi.com/moaddi/supplier/serviescheckitemprice.htm";
+                //String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviescheckitemprice.htm";
+                BarcodeResultSend l = new BarcodeResultSend();
+                l.setUserRoleId(Login.userRoleId);
+                //l.setUserRoleId("21");
+                l.setBarcode(ItemText.getText().toString().trim());
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                la = restTemplate.postForObject(URL,l,String.class);
+                return la;
+            } catch (Exception e) {
+                Log.e("LoginActivity", e.getMessage(), e);
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String  la) {
+            //The returned object of LoginForm that we recieve from postforobject in doInBackground is displayed here.
+            //tv.setText(la);
+            //Toast.makeText(getActivity(),la,Toast.LENGTH_LONG).show();
+            if (la!=null) {
+                try {
+                    JSONObject j = new JSONObject(la);
+                    ilf.setPrice(j.getDouble("price"));
+                    ilf.setItemId(j.getLong("itemId"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+               //new HttpRequestTask2().execute();
+                hotutil.startHotSpot(true);
+            }
+            else if (la.equals("ItemIsNotThere"))
+            {
+                Toast.makeText(getActivity(),"Lock Doesn't belong to this Supplier",Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                Toast.makeText(getActivity(),"Poor Connection",Toast.LENGTH_LONG).show();
+            }
+        }
+
+    }
+    public class HttpRequestTask2 extends AsyncTask<Void, Void,String > {
+        // String a=null;
+        String la=null;
+        @Override
+        public  String doInBackground(Void... params) {
+            try {
+                String URL = "https://www.moaddi.com/moaddi/supplier/serviesitemlock.htm";
+               // String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviesitemlock.htm";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                history.add(ilf);
+                m.notifyDataSetChanged();
+                la = restTemplate.postForObject(URL,ilf,String.class);
+                return la;
+            } catch (Exception e) {
+                Log.e("LoginActivity", e.getMessage(), e);
+
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String  la)
+        {
+            Toast.makeText(getActivity(),la,Toast.LENGTH_LONG).show();
+        }
     }
 }
