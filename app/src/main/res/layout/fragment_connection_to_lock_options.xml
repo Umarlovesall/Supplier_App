@@ -24,7 +24,22 @@
         android:gravity="center"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:text="Send Data To Locks"
+        android:text="One by One Connection"
+        android:textStyle="bold|italic" />
+
+    <Button
+        android:id="@+id/continuec"
+        style="?android:textAppearanceSmall"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/shapes"
+        android:textColor="#fff"
+        android:gravity="center"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Continue Connection"
         android:textStyle="bold|italic" />
 
     <LinearLayout

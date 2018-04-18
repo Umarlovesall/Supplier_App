@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
-import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
 
 
 /**
@@ -138,10 +137,10 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 clickedItem=al.get(position);
                 LockDetails fragment = new LockDetails();
-                FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out);
-                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG).addToBackStack(null);
-                fragmentTransaction.commitAllowingStateLoss();
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.frame, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
             }
         });
         return v;
@@ -165,15 +164,16 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
         protected String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "https://www.moaddi.com/moaddi/supplier/serviesmachines.htm";
+                String URL = "https://www.moaddi.com/moaddi/supplier/machineslist.htm";
+                //String URL = "http://192.168.0.113:8081/Moaddi2/supplier/machineslist.htm";
                 //Create and set object 'l' of bean class LoginForm,which we will POST then
-                BarcodeResultSend b=new BarcodeResultSend();
-                b.setUserRoleId(Login.userRoleId);
+                /*BarcodeResultSend b=new BarcodeResultSend();
+                b.setUserRoleId(Login.userRoleId);*/
                 //Use RestTemplate to POST(within Asynctask)
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 //postforobject method POSTs data to server and brings back LoginForm object format data.
-                String lf = restTemplate.postForObject(URL, b, String.class);
+                String lf = restTemplate.postForObject(URL, Login.userRoleId, String.class);
                 return lf;
             } catch (Exception e) {
                 Log.e("MainActivity", e.getMessage(), e);
@@ -184,6 +184,7 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
 
         @Override
         protected void onPostExecute(String lf) {
+            //Toast.makeText(getActivity(),lf,Toast.LENGTH_SHORT).show();
             if (lf!=null) {
                 //Saving all details of the machines in separate field so as to use it later for fetching "price" and other details of the items.
                 et.putString("machinesAllData",lf).apply();

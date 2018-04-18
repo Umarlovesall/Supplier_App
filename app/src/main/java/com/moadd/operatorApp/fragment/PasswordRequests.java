@@ -19,22 +19,11 @@ import android.widget.ListView;
 import com.moadd.operatorApp.BarcodeResultSend;
 import com.moadd.operatorApp.Login;
 import com.moaddi.operatorApp.R;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-
-import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
-
 /**
  * A simple {@link Fragment} subclass.
  */
 public class PasswordRequests extends Fragment {
-    Button lockPasswordRequests;
+    Button lockPasswordRequests,lockFormCase,passwordsRecieved;
     public PasswordRequests() {
         // Required empty public constructor
     }
@@ -46,17 +35,38 @@ public class PasswordRequests extends Fragment {
         // Inflate the layout for this fragment
         View v= inflater.inflate(R.layout.fragment_password_requests, container, false);
         lockPasswordRequests= (Button) v.findViewById(R.id.LockPasswordRequest);
+        lockFormCase= (Button) v.findViewById(R.id.lockForm);
+        passwordsRecieved=(Button) v.findViewById(R.id.LockPasswordRecieve);
         lockPasswordRequests.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LockPasswordRequest fragment = new LockPasswordRequest();
-                FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out);
-                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG).addToBackStack(null);
-                fragmentTransaction.commitAllowingStateLoss();
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.frame, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
             }
         });
-
+        lockFormCase.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LockFormCase fragment = new LockFormCase();
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.frame, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        });
+        passwordsRecieved.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LockPasswordRecieve fragment = new LockPasswordRecieve();
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.frame, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        });
         return v;
     }
 

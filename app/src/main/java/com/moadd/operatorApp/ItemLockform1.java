@@ -1,12 +1,46 @@
 package com.moadd.operatorApp;
 
-/**
- * Created by moadd on 12-Sep-17.
- */
+public class ItemLockform1 {
 
-   /* private String expireDate,productionDate;
-    private long itemId,lockId,userRoleID,iquantity;
-    private double price;
+    private String priceString,itemIdString,lockIdString;
+    private String password;
+    private String expireDate;
+
+    public String getLockIdString() {
+        return lockIdString;
+    }
+
+    public void setLockIdString(String lockIdString) {
+        this.lockIdString = lockIdString;
+    }
+
+    private String productionDate;
+    private long iquantity;
+    private long itemId;
+
+    public String getPriceString() {
+        return priceString;
+    }
+
+    public void setPriceString(String priceString) {
+        this.priceString = priceString;
+    }
+
+    public String getItemIdString() {
+        return itemIdString;
+    }
+
+    public void setItemIdString(String itemIdString) {
+        this.itemIdString = itemIdString;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getExpireDate() {
         return expireDate;
@@ -22,6 +56,14 @@ package com.moadd.operatorApp;
 
     public void setProductionDate(String productionDate) {
         this.productionDate = productionDate;
+    }
+
+    public long getIquantity() {
+        return iquantity;
+    }
+
+    public void setIquantity(long iquantity) {
+        this.iquantity = iquantity;
     }
 
     public long getItemId() {
@@ -40,20 +82,12 @@ package com.moadd.operatorApp;
         this.lockId = lockId;
     }
 
-    public long getUserRoleID() {
-        return userRoleID;
+    public long getUserRoleId() {
+        return userRoleId;
     }
 
-    public void setUserRoleID(long userRoleID) {
-        this.userRoleID = userRoleID;
-    }
-
-    public long getIquantity() {
-        return iquantity;
-    }
-
-    public void setIquantity(long iquantity) {
-        this.iquantity = iquantity;
+    public void setUserRoleId(long userRoleId) {
+        this.userRoleId = userRoleId;
     }
 
     public double getPrice() {
@@ -62,70 +96,13 @@ package com.moadd.operatorApp;
 
     public void setPrice(double price) {
         this.price = price;
-    }*/
-   public class ItemLockform1 {
-
-       private String expireDate,password;
-       private String productionDate;
-
-    public String getPassword() {
-        return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    private long iquantity;
-       private long itemId;
-       private long lockId;
-       private long userRoleId;
-       private double price;
-       public String getExpireDate() {
-           return expireDate;
-       }
-       public void setExpireDate(String expireDate) {
-           this.expireDate = expireDate;
-       }
-       public String getProductionDate() {
-           return productionDate;
-       }
-       public void setProductionDate(String productionDate) {
-           this.productionDate = productionDate;
-       }
-       public Long getIquantity() {
-           return iquantity;
-       }
-       public void setIquantity(Long iquantity) {
-           this.iquantity = iquantity;
-       }
-       public Long getItemId() {
-           return itemId;
-       }
-       public void setItemId(Long itemId) {
-           this.itemId = itemId;
-       }
-       public Long getLockId() {
-           return lockId;
-       }
-       public void setLockId(Long lockId) {
-           this.lockId = lockId;
-       }
-       public Long getUserRoleId() {
-           return userRoleId;
-       }
-       public void setUserRoleId(Long userRoleId) {
-           this.userRoleId = userRoleId;
-       }
-       public Double getPrice() {
-           return price;
-       }
-       public void setPrice(Double price) {
-           this.price = price;
-       }
+    private long lockId;
+    private long userRoleId;
+    private double price;
 
 
 
 
-   }
-
+}

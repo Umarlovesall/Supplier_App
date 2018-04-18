@@ -40,8 +40,6 @@ import java.util.ArrayList;
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
-import static com.moadd.operatorApp.MainActivity.CURRENT_TAG;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -134,17 +132,17 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
 
             }
         });
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    /*    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 clickedItem=al.get(position);
                 LockDetails fragment = new LockDetails();
-                FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,android.R.anim.fade_out);
-                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG).addToBackStack(null);
-                fragmentTransaction.commitAllowingStateLoss();
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.frame, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
             }
-        });
+        });*/
         return v;
     }
     @Override
@@ -166,8 +164,8 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
         protected String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "https://www.moaddi.com/moaddi/supplier/serviessupplieritemsthroughbarcode1.htm";
-                //String URL = "http://192.168.0.102:8080/Moaddi1/supplier/serviessupplieritemsthroughbarcode1.htm";
+               // String URL = "https://www.moaddi.com/moaddi/supplier/serviessupplieritemsthroughbarcode1.htm";
+                String URL = "https://www.moaddi.com/moaddi/supplier/serviceitemslist.htm";
                 //Create and set object 'l' of bean class LoginForm,which we will POST then
                 BarcodeResultSend b=new BarcodeResultSend();
                 b.setUserRoleId(Login.userRoleId);
@@ -176,7 +174,7 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 //postforobject method POSTs data to server and brings back LoginForm object format data.
-                String lf = restTemplate.postForObject(URL, b, String.class);
+                String lf = restTemplate.postForObject(URL, Login.userRoleId, String.class);
                 return lf;
             } catch (Exception e) {
                 Log.e("MainActivity", e.getMessage(), e);
@@ -221,6 +219,10 @@ public class AllItems extends Fragment implements NetworkStateReceiver.NetworkSt
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            }
+            else
+            {
+                Toast.makeText(getActivity(), "Null returned", Toast.LENGTH_SHORT).show();
             }
 
         }
