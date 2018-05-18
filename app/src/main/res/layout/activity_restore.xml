@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:background="#293d68"
+    tools:context="com.moadd.operatorApp.Restore">
+
+    <ImageView
+        android:layout_marginTop="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:src="@drawable/logozzz"/>
+    <EditText
+        android:id="@+id/userId"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:background="@drawable/shape2"
+        android:paddingLeft="30dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:hint="User Id"
+        android:textColorHint="#fff"
+        android:inputType="text"
+        android:maxLines="1"
+        android:textStyle="italic"
+        />
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:hint="Password"
+        android:textColorHint="#fff"
+        android:background="@drawable/shape2"
+        android:textStyle="italic"
+        android:paddingLeft="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="20dp"
+        android:imeOptions="actionUnspecified"
+        android:inputType="textPassword"
+        android:maxLines="1" />
+    <EditText
+        android:id="@+id/appId"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:hint="App Id"
+        android:textColorHint="#fff"
+        android:background="@drawable/shape2"
+        android:textStyle="italic"
+        android:paddingLeft="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:imeOptions="actionUnspecified"
+        android:inputType="textPassword"
+        android:maxLines="1" />
+    <Button
+        android:id="@+id/restore"
+        style="?android:textAppearanceSmall"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/shapes"
+        android:textColor="#fff"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Restore"
+        android:textStyle="bold|italic" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5"></LinearLayout>
+
+
+</LinearLayout>

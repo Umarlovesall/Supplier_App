@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_home_black_24dp"
+            android:title="Connect" />
+        <item
+            android:id="@+id/Synchronize"
+            android:title="Synchronize" />
+        <item
+            android:id="@+id/Machines"
+            android:icon="@drawable/machine"
+            android:title="Machines" />
+
+        <item
+            android:id="@+id/Locks"
+            android:icon="@drawable/locks"
+            android:title="Locks" />
+
+        <item
+            android:id="@+id/items"
+            android:icon="@drawable/item"
+            android:title="Items" />
+        <item
+            android:id="@+id/changeAppPassword"
+            android:icon="@drawable/locks"
+            android:title="Change App Password" />
+        <item
+            android:id="@+id/productTypes"
+            android:title="Product Categories" />
+        <item
+            android:id="@+id/passwordRequests"
+            android:title="Password Requests" />
+        <item
+            android:id="@+id/about"
+            android:title="About" />
+        <item
+            android:id="@+id/changeQuantity"
+            android:title="Change Product Quantity" />
+
+        <item
+            android:id="@+id/history"
+            android:icon="@drawable/password"
+            android:title="History" />
+
+    </group>
+
+    <item android:title="Other">
+        <menu>
+            <item
+                android:id="@+id/nav_about_us"
+                android:title="@string/nav_about_us" />
+            <item
+                android:id="@+id/nav_privacy_policy"
+                android:title="@string/privacy_policy" />
+        </menu>
+    </item>
+
+</menu>

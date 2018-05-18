@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#293d68"
+    >
+
+    <ImageView
+        android:layout_marginTop="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.6"
+        android:src="@drawable/logozzz"/>
+    <Spinner
+        android:id="@+id/select"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+
+        ></Spinner>
+    <Spinner
+        android:id="@+id/listOfIds"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+
+        ></Spinner>
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+        android:hint="Password"
+        android:textColorHint="#fff"
+        android:background="@drawable/shape2"
+        android:textStyle="italic"
+        android:paddingLeft="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="20dp"
+        android:imeOptions="actionUnspecified"
+        android:inputType="numberPassword"
+        android:maxLines="1" />
+
+    <Button
+        android:id="@+id/login"
+        style="?android:textAppearanceSmall"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.25"
+        android:background="@drawable/shapes"
+        android:textColor="#fff"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Login"
+        android:textStyle="bold|italic" />
+    <LinearLayout
+        android:id="@+id/touchid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal"
+        android:background="#293d68"/>
+
+
+</LinearLayout>
