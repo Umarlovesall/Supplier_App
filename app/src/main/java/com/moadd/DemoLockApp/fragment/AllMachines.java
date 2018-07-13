@@ -86,7 +86,8 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
             lockDetails = db.getLocksData();
         }*/
         MachineDetails=sp.getString("MachineDetails",null);
-        new HttpRequestTask().execute();
+        //new HttpRequestTask().execute();
+        new HttpRequestTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
        iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,12 +126,12 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+                aa.getFilter().filter(s);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-
+                aa.getFilter().filter(s);
             }
         });
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -141,7 +142,7 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
                b.setBarcode(alMachineIds.get(position));
                clickedItem=alMachineIds.get(position);
                 //b.setBarcode("72");
-                new HttpRequestTask1().execute();
+                new HttpRequestTask1().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
        /* lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -177,8 +178,8 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
             try {
                 //The link on which we have to POST data and in return it will return some data
                 //String URL = "http://192.168.0.102:8082/webservices/"+Login.category.toLowerCase()+"/machineslist.htm";
-                String URL ="https://www.moaddi.com/moaddi/"+Login.category.toLowerCase()+"/machineslist.htm";
-               // String URL ="http://192.168.0.108:8082/webservices/"+Login.category.toLowerCase()+"/machineslist.htm";
+                  String URL ="https://www.moaddi.com/moaddi/"+Login.category.toLowerCase()+"/machineslist.htm";
+                //String URL ="http://192.168.0.108:8082/webservices/"+Login.category.toLowerCase()+"/machineslist.htm";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 //postforobject method POSTs data to server and brings back LoginForm object format data.
@@ -247,7 +248,7 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
             try {
                 //The link on which we have to POST data and in return it will return some data
                 // String URL = "http://192.168.0.102:8082/webservices/"+Login.category.toLowerCase()+"/lockslistconnectedmachine.htm";
-                String URL ="https://www.moaddi.com/moaddi/"+Login.category.toLowerCase()+"/machineslist.htm";
+                String URL ="https://www.moaddi.com/moaddi/"+Login.category.toLowerCase()+"/lockslistconnectedmachine.htm";
                 // String URL ="http://192.168.0.108:8082/webservices/"+Login.category.toLowerCase()+"/machineslist.htm";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -263,14 +264,16 @@ public class AllMachines extends Fragment implements NetworkStateReceiver.Networ
 
         @Override
         protected void onPostExecute(String lf) {
-
-            Toast.makeText(getActivity(),lf,Toast.LENGTH_SHORT).show();
-            locksOfAmachine=lf;
-            ThisMachineLocks fragment = new ThisMachineLocks();
-            FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.frame, fragment);
-            ft.addToBackStack(null);
-            ft.commit();
+           // Toast.makeText(getActivity(), lf, Toast.LENGTH_LONG).show();
+if (lf!=null)
+{
+    locksOfAmachine = lf;
+    ThisMachineLocks fragment = new ThisMachineLocks();
+    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+    ft.replace(R.id.frame, fragment);
+    ft.addToBackStack(null);
+    ft.commit();
+}
         }
     }
 

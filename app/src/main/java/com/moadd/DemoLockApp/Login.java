@@ -73,15 +73,15 @@ String item,complaint;
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!password.getText().toString().equals(null)&& selectedItem!=null) {
+                if (!password.getText().toString().equals("")&& selectedItem!=null) {
                     b.setUserid(selectedItem);
                     b.setPassword(password.getText().toString().trim());
                     b.setUserRole(complaint);
-                    new HttpRequestTask1().execute();
+                    new HttpRequestTask1().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(),"Id/Password fields can't be empty",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Id/Password fields can't be empty",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -96,7 +96,7 @@ String item,complaint;
         dataAdapter1.notifyDataSetChanged();
         if (complaint.equals("Operator") || complaint.equals("Supplier"))
         {
-            new HttpRequestTask().execute();
+            new HttpRequestTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
     @Override
@@ -128,6 +128,7 @@ String item,complaint;
          //   Toast.makeText(getApplicationContext(), m, Toast.LENGTH_LONG).show();
 if (m!=null)
 {
+    //IdList.clear();
     m=m.replace('[',' ').replace('"',' ').replace(']',' ').replace(',',' ').trim();
     String arr[]=m.split(" ");
     for (int i=0;i<arr.length;i++)
@@ -147,9 +148,9 @@ if (m!=null)
         public  String doInBackground(Void... params) {
             try {
                 //The link on which we have to POST data and in return it will return some data
-                String URL = "https://www.moaddi.com/moaddi/serviceforloginapp.htm";
-               //String URL="http://192.168.0.110:8082/webservices/serviceforloginapp.htm";
-                //String URL="https://www.moaddi.com/moaddi/serviceforloginapp.htm";
+                //String URL = "https://www.moaddi.com/moaddi/serviceforloginapp.htm";
+               //String URL="http://192.168.0.116:8080/webservices/serviceforloginapp.htm";
+               String URL="https://www.moaddi.com/moaddi/serviceforloginapp.htm";
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
                 la = restTemplate.postForObject(URL,b,String.class);
@@ -162,20 +163,32 @@ if (m!=null)
         @Override
         protected void onPostExecute(String m) {
            // Toast.makeText(getApplicationContext(), m, Toast.LENGTH_LONG).show();
-            if (!m.equals("") && !m.equals(null))
-            {
-                userRoleId = m;
-                Id=selectedItem;
-                Intent in=new Intent(Login.this,MainActivity.class);
-                startActivity(in);
-                finish();
-            }
-            else
-            {
-                Toast.makeText(getApplicationContext(), "Incorrect UserId/Password.", Toast.LENGTH_LONG).show();
+                if (m.equals("You are not Authorized User"))
+                {
+                    Toast.makeText(getApplicationContext(), "You are not Authorized User!", Toast.LENGTH_SHORT).show();
+                }
+                else if (m.equals("UserId/Password InCorrect"))
+                {
+                    Toast.makeText(getApplicationContext(), "UserId/Password Incorrect!", Toast.LENGTH_SHORT).show();
+                }
+                else if (m.equals("Check credentials"))
+                {
+                    Toast.makeText(getApplicationContext(), "Please login as Operator/Supplier!", Toast.LENGTH_SHORT).show();
+                }
+                else if (m.equals(null))
+                {
+                    Toast.makeText(getApplicationContext(), "Null returned!", Toast.LENGTH_SHORT).show();
+
+                }
+                else {
+                    userRoleId = m;
+                    Id = selectedItem;
+                    Intent in = new Intent(Login.this, MainActivity.class);
+                    startActivity(in);
+                    finish();
+                }
             }
         }
-    }
     @Override
     protected void onRestart()
     {

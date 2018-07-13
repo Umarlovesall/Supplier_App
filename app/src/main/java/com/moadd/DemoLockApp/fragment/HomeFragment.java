@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -64,7 +65,8 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
     SharedPreferences AllDetails;
     SharedPreferences.Editor AllDetailsEt;
     TextView data,p2,p4,p3,p1,barcode;
-    Button type,settings;
+    Button type,settings,OpenLock;
+    EditText passwordLock;
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -76,6 +78,8 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         networkStateReceiver = new NetworkStateReceiver();
         networkStateReceiver.addListener(this);
         getActivity().registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
+        OpenLock = (Button) v.findViewById(R.id.open);
+        passwordLock= (EditText) v.findViewById(R.id.passwordLock);
         wifi= (Button) v.findViewById(R.id.wifi);
         p2= (TextView) v.findViewById(R.id.p2);
         p4= (TextView) v.findViewById(R.id.p4);
@@ -89,15 +93,49 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         AllDetailsEt=AllDetails.edit();
         data.setMovementMethod(new ScrollingMovementMethod());
         wm=(WifiManager)  getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        //wm.setWifiEnabled(false);
         getActivity().registerReceiver(this.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        Toast.makeText(getActivity(),Login.selectedSecretNo,Toast.LENGTH_SHORT).show();
+        OpenLock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!Login.selectedlockBarcode.equals("XXXXXXXXX")) {
+                    if (AllDetails.getString("Password Of the Lock", "").equals(passwordLock.getText().toString().trim())) {
+                        AllDetailsEt.putString("Password Of the Lock", "").apply();
+                        AllDetailsEt.putString("Supplier IDs(Coming via supplier app connection)", "").apply();
+                        p4.setBackgroundColor(Color.parseColor("#ff0000"));
+                        p1.setBackgroundResource(R.drawable.textview_border);
+                        passwordLock.setText("");
+                        Toast.makeText(getActivity(), "Lock Opened.", Toast.LENGTH_SHORT).show();
+                    } else if (passwordLock.getText().toString().equals("")) {
+                        Toast.makeText(getActivity(), "Enter the password first!", Toast.LENGTH_SHORT).show();
+                    } else if (AllDetails.getString("Password Of the Lock", "").equals("")) {
+                        Toast.makeText(getActivity(), "The Lock is already Opened.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Incorrect password!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else
+                {
+                    Toast.makeText(getActivity(), "You cannot open the Demo Lock!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Lock_Setup_Details fragment = new Lock_Setup_Details();
+                if (!Login.selectedlockBarcode.equals("XXXXXXXXX"))
+                {
+                    Lock_Setup_Details fragment = new Lock_Setup_Details();
                 FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                 ft.replace(R.id.frame, fragment);
                 ft.addToBackStack(null);
                 ft.commit();
+            }
+            else
+                {
+                    Toast.makeText(getActivity(), "This is Demo lock.Choose a lock from the list of locks from the Menu first.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         if (Login.category.equals("Operator"))
@@ -108,7 +146,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         {
             type.setText("Supplier");
         }
-        if (wm.isWifiEnabled())
+       /* if (wm.isWifiEnabled())
         {
             wifi.setText("Click to turn OFF Wi Fi");
             p2.setBackgroundColor(Color.parseColor("#0000ff"));
@@ -116,16 +154,17 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         else
         {
             wifi.setText("Click to turn ON Wi Fi");
-            p2.setBackgroundColor(Color.parseColor("#293d68"));
-        }
+            p2.setBackgroundResource(R.drawable.textview_border);
+        }*/
         if(!AllDetails.getString("Password Of the Lock","").equals(""))
         {
-         p4.setBackgroundColor(Color.parseColor("#00ff00"));
+         p4.setBackgroundResource(R.drawable.textview_border);
+         p1.setBackgroundColor(Color.parseColor("#00ff00"));
         }
         else
         {
             p4.setBackgroundColor(Color.parseColor("#ff0000"));
-
+            p1.setBackgroundResource(R.drawable.textview_border);
         }
         //Permissions for switching on/off wifi access :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -160,11 +199,32 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 {
                     disconnectWifi();
                     wifi.setText("Click to turn ON Wi Fi");
-                    p2.setBackgroundColor(Color.parseColor("#293d68"));
+                    p2.setBackgroundResource(R.drawable.textview_border);
                 }
                 else
                 {
-                    connectToWifi();
+                   /* if (!AllDetails.getString("Operator Hotspot Details","").equals("") && Login.category.equals("Operator"))
+                    {
+                        String []x= AllDetails.getString("Operator Hotspot Details","").replace('$',' ').replace('*','^').trim().split("^");
+                        connectToSavedWifi(x[0],x[1]);
+                        wifi.setText("Click to turn OFF Wi Fi");
+                        p2.setBackgroundColor(Color.parseColor("#0000ff"));
+                    }
+                    else if (!AllDetails.getString("Supplier Hotspot Details","").equals("") && Login.category.equals("Supplier"))
+                    {
+
+                        String []x= AllDetails.getString("Supplier Hotspot Details","").replace('@',' ').replace('*','^').trim().split("^");
+                       // connectToSavedWifi(x[0],x[1]);
+                        wifi.setText("Click to turn OFF Wi Fi");
+                        p2.setBackgroundColor(Color.parseColor("#0000ff"));
+                    }
+                    else
+                    {
+                        connectToDefaultWifi();
+                        wifi.setText("Click to turn OFF Wi Fi");
+                        p2.setBackgroundColor(Color.parseColor("#0000ff"));
+                    }*/
+                    connectToDefaultWifi();
                     wifi.setText("Click to turn OFF Wi Fi");
                     p2.setBackgroundColor(Color.parseColor("#0000ff"));
                 }
@@ -316,10 +376,11 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
            }*/
             if (response.equals(Login.selectedSecretNo))
             {
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
-                s.execute();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+Login.selectedlockBarcode+" \n "+"Recieved :"+" \n "+"Secret Number : "+response);
-                AllDetailsEt.putString("LockSerialNumber",Login.selectedlockBarcode).apply();
+
+                    SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
+                    s.execute();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+Login.selectedlockBarcode+" \n "+"Recieved :"+" \n "+"Secret Number : "+response);
+                    AllDetailsEt.putString("LockSerialNumber",Login.selectedlockBarcode).apply();
             }
             else
             {
@@ -414,15 +475,26 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             }
             else if (response!=null && response.charAt(0)=='&')
             {
-                //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS2");
-                s.execute();
-                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Date,Time and WifiLimit : "+response);
-                if(AllDetails.getString("Date,Time and WifiLimit","").equals(""))
+                SuccessfullDataExchange s;
+                if ( AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("") && Login.category.equals("Operator"))
                 {
-                    AllDetailsEt.putString("Date,Time and WifiLimit", response.replace('&', ' ').trim()).apply();
+                    //parse and save data of the setup
+                     s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS2");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Date,Time and WifiLimit : "+response);
+                    if(AllDetails.getString("Date,Time and WifiLimit","").equals(""))
+                    {
+                        AllDetailsEt.putString("Date,Time and WifiLimit", response.replace('&', ' ').trim()).apply();
+                        s = new SuccessfullDataExchange("192.168.43.1",5000,"Operator Setup Already Done.");
+                        s.execute();
+                    }
                 }
+                else
+                {
+                    Toast.makeText(getActivity(),"Operator setup already done,reset if you want to do a new setup.",Toast.LENGTH_SHORT).show();
+                }
+
             }
             else if (response!=null && response.charAt(0)=='%')
             {
@@ -431,7 +503,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS2"+" \n "+"Recieved :"+" \n "+"Operator Id and App Id : "+response);
-                if (!AllDetails.getString("Operator Id and App Id","").equals(""))
+                if (AllDetails.getString("Operator Id and App Id","").equals(""))
                 {
                     AllDetailsEt.putString("Operator Id and App Id", response.replace('%', ' ').trim()).apply();
                 }
@@ -443,7 +515,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS3"+" \n "+"Recieved :"+" \n "+"Operator Hotspot Details : "+response);
-                if (!AllDetails.getString("Operator Hotspot Details","").equals(""))
+                if (AllDetails.getString("Operator Hotspot Details","").equals(""))
                 {
                     AllDetailsEt.putString("Operator Hotspot Details", response.replace('$', ' ').trim()).apply();
                 }
@@ -455,7 +527,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS4"+" \n "+"Recieved :"+" \n "+"Supplier Hotspot Details : "+response);
-                if (!AllDetails.getString("Supplier Hotspot Details","").equals("")) {
+                if (AllDetails.getString("Supplier Hotspot Details","").equals("")) {
                     AllDetailsEt.putString("Supplier Hotspot Details", response.replace('@', ' ').trim()).apply();
                 }
             }
@@ -466,7 +538,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS5"+" \n "+"Recieved :"+" \n "+"Connected Suppliers IDs and App IDs : "+response);
-                if (!AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("")){
+                if (AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("")){
                 AllDetailsEt.putString("Connected Suppliers IDs and App IDs",response.replace('!',' ').trim()).apply();
                 }
             }
@@ -492,6 +564,10 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 if (AllDetails.getString("Password Of the Lock","").equals("")) {
                     AllDetailsEt.putString("Password Of the Lock", response.replace('~', ' ').trim()).apply();
                 }
+               /* else
+                {
+                    Toast.makeText(getActivity(),"Lock Already Filled!",Toast.LENGTH_SHORT).show();
+                }*/
             }
             else if (response.equals("RESET"))
             {
@@ -505,6 +581,8 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 AllDetailsEt.putString("Supplier Hotspot Details","").apply();
                 AllDetailsEt.putString("Operator Hotspot Details","").apply();
                 AllDetailsEt.putString("Operator Id and App Id","").apply();
+                p4.setBackgroundColor(Color.parseColor("#ff0000"));
+                p1.setBackgroundResource(R.drawable.textview_border);
             }
             else if (response!=null && response.charAt(0)=='-')
             {
@@ -515,7 +593,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 Bitmap bitmap = BitmapFactory.decodeStream(stream);
                 iv.setImageBitmap(bitmap);*/
                 // barcode image
-                Toast.makeText(getActivity(),response.replace('-',' ').trim(),Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(),response.replace('-',' ').trim(),Toast.LENGTH_SHORT).show();
               /*  Bitmap bitmap = null;
                 try {
 
@@ -539,7 +617,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             super.onPostExecute(result);
         }
     }
-    public void connectToWifi(){
+    public void connectToDefaultWifi(){
         try{
             WifiManager wifiManager = (WifiManager) super.getActivity().getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
             WifiConfiguration wc = new WifiConfiguration();
@@ -568,6 +646,37 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             e.printStackTrace();
         }
     }
+
+    public void connectToSavedWifi(String ssid,String password){
+        try{
+            WifiManager wifiManager = (WifiManager) super.getActivity().getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+            WifiConfiguration wc = new WifiConfiguration();
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            wc.SSID = ssid;
+            wc.preSharedKey = password;
+            wc.status = WifiConfiguration.Status.ENABLED;
+            wc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+            wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+            wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+            wifiManager.setWifiEnabled(true);
+            int netId = wifiManager.addNetwork(wc);
+           /* if (netId == -1) {
+                netId = getExistingNetworkId(SSID);
+            }*/
+          /*  wifiManager.disconnect();
+            wifiManager.enableNetwork(netId, true);
+            wifiManager.reconnect();*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void disconnectWifi(){
         try{
             WifiManager wifiManager = (WifiManager) super.getActivity().getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
@@ -597,6 +706,17 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             e.printStackTrace();
         }
     }
+   /* public  void wifiAccess(){
+       WifiManager wifiManager = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+         WifiConfiguration config = new WifiConfiguration();
+        config.SSID = "\"xxx\"";
+        config.preSharedKey = "\"123\"";
+        if (!wifiManager.isWifiEnabled()){
+            wifiManager.setWifiEnabled(true);
+            int networkId = WifiManager.addNetwork(config);
+            WifiManager.enableNetwork(networkId, true);
+        }
+    }*/
     public void joinFriend(final WifiStatus wifiStatus, final wifiHotSpots hotutil) {
         if (wifiStatus.checkWifi(wifiStatus.IS_WIFI_ON)) {
             hotutil.scanNetworks();
@@ -660,21 +780,23 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
     }
 
     @Override
-    public void networkAvailable() {
-
-        MyClientTask myClientTask = new MyClientTask("192.168.43.1",5000,"A020A605EBF3");
+    public void networkAvailable()
+    {
+        MyClientTask myClientTask = new MyClientTask("192.168.43.1",5000,Login.selectedlockBarcode);
         myClientTask.execute();
+        wifi.setText("Click to turn OFF Wi Fi");
+        p2.setBackgroundColor(Color.parseColor("#0000ff"));
     }
-
     @Override
     public void networkUnavailable() {
-
+        wifi.setText("Click to turn ON Wi Fi");
+        p2.setBackgroundResource(R.drawable.textview_border);
     }
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context ctxt, Intent intent) {
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            if (level<=82)
+            if (level<=75)
             {
 p3.setBackgroundColor(Color.parseColor("#FFBF00"));
 Toast.makeText(getActivity(),"Lock Batter Low",Toast.LENGTH_SHORT).show();
@@ -684,6 +806,7 @@ Toast.makeText(getActivity(),"Lock Batter Low",Toast.LENGTH_SHORT).show();
                // p3.setBackgroundColor(Color.parseColor("#00ff00"));
                 p3.setBackgroundResource(R.drawable.textview_border);
             }
+            getActivity().unregisterReceiver(mBatInfoReceiver);
         }
     };
 }

@@ -76,7 +76,7 @@ public class AllLocks extends Fragment implements NetworkStateReceiver.NetworkSt
         networkStateReceiver = new NetworkStateReceiver();
         networkStateReceiver.addListener(this);
         lockDetails=sp.getString("lockDetails",null);
-        new HttpRequestTask().execute();
+        new HttpRequestTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -120,6 +120,7 @@ public class AllLocks extends Fragment implements NetworkStateReceiver.NetworkSt
             }
         });*/
        searchBox.addTextChangedListener(new TextWatcher() {
+
            @Override
            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                aa.getFilter().filter(s);
@@ -127,12 +128,12 @@ public class AllLocks extends Fragment implements NetworkStateReceiver.NetworkSt
 
            @Override
            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+               aa.getFilter().filter(s);
            }
 
            @Override
            public void afterTextChanged(Editable s) {
-
+               aa.getFilter().filter(s);
            }
        });
      /*  lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -2,7 +2,9 @@ package com.moadd.DemoLockApp.fragment;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,7 +21,7 @@ import com.moaddi.operatorApp.R;
  */
 public class About extends Fragment {
 SharedPreferences sp;
-TextView appId;
+//TextView appId;
 Button update;
     public About() {
         // Required empty public constructor
@@ -32,19 +34,19 @@ Button update;
         // Inflate the layout for this fragment
         View v= inflater.inflate(R.layout.fragment_about, container, false);
         sp=getActivity().getSharedPreferences("Credentials", Context.MODE_PRIVATE);
-        appId= (TextView) v.findViewById(R.id.AppId);
+        //appId= (TextView) v.findViewById(R.id.AppId);
         update= (Button) v.findViewById(R.id.update);
-      /*  update.setOnClickListener(new View.OnClickListener() {
+        update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.moadd.demolock"));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.moadd.demoLockApp"));
                     startActivity(intent);
             }
-        });*/
-        if (sp.getString("appId",null)!=null) {
+        });
+       /* if (sp.getString("appId",null)!=null) {
             appId.setText("App Id :  "+sp.getString("appId", null));
-        }
+        }*/
         return v;
     }
 

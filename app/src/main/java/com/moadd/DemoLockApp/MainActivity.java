@@ -3,6 +3,7 @@ package com.moadd.DemoLockApp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -24,6 +25,16 @@ import com.moadd.DemoLockApp.fragment.HomeFragment;
 import com.moadd.DemoLockApp.fragment.LockSettings;
 import com.moadd.DemoLockApp.fragment.Synchronize;
 import com.moaddi.operatorApp.R;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import static com.moadd.DemoLockApp.Login.Id;
+import static com.moadd.DemoLockApp.Login.category;
+import static com.moadd.DemoLockApp.Login.userRoleId;
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences sp;
@@ -84,13 +95,14 @@ public class MainActivity extends AppCompatActivity {
     private void createMenuOption() {
 
 
-        drawerItem = new DataModel[6];
+        drawerItem = new DataModel[7];
         drawerItem[0] = new DataModel(R.drawable.ic_home_black_24dp, "Home");
         drawerItem[1] = new DataModel(R.mipmap.synchronization_button_with_two_arrows, "Synchronize");
         drawerItem[2] = new DataModel(R.mipmap.machine, "Machines");
         drawerItem[3] = new DataModel(R.drawable.locks, "Locks");
         drawerItem[4] = new DataModel(R.drawable.aboutus, "About App");
         drawerItem[5] = new DataModel(R.drawable.logouuuuuuu, "Logout");
+        drawerItem[6] = new DataModel(R.drawable.logouuuuuuu, "Test");
     }
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
@@ -126,7 +138,14 @@ public class MainActivity extends AppCompatActivity {
                 Intent in=new Intent(MainActivity.this,Login.class);
                 startActivity(in);
                 Toast.makeText(this,"Successfully Logged Out",Toast.LENGTH_SHORT).show();
+                Login.selectedlockBarcode="XXXXXXXXX";
+                Login.selectedSecretNo="123456789";
+                userRoleId="";
+                Id="";
+                category="";
                 finish();
+            case 6:
+                new HttpRequestTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             default:
                 break;
         }
@@ -190,5 +209,31 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         et.putInt("LoginStatus",0).apply();
 
+    }
+    private class HttpRequestTask extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                //The link on which we have to POST data and in return it will return some data
+                //String URL = "http://192.168.0.102:8082/webservices/"+Login.category.toLowerCase()+"/machineslist.htm";
+                //String URL ="https://www.moaddi.com/moaddi/"+Login.category.toLowerCase()+"/machineslist.htm";
+                String URL ="http://192.168.0.108:8082/webservices/supplier/machineslist.htm";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                //postforobject method POSTs data to server and brings back LoginForm object format data.
+                String lf = restTemplate.postForObject(URL, "91", String.class);
+                return lf;
+            } catch (Exception e) {
+                Log.e("MainActivity", e.getMessage(), e);
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String lf)
+        {
+            Toast.makeText(MainActivity.this,lf,Toast.LENGTH_SHORT).show();
+             }
     }
 }

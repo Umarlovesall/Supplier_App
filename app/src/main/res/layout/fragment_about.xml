@@ -24,20 +24,7 @@
         android:layout_marginRight="30dp"
         android:text="Check For Updates"
         android:textStyle="bold|italic" />
-    <TextView
-        android:id="@+id/AppId"
-        style="?android:textAppearanceSmall"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.5"
-        android:layout_marginTop="30dp"
-        android:background="@drawable/shapes"
-        android:textColor="#fff"
-        android:gravity="center"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:text="App ID"
-        android:textStyle="bold|italic" />
+
     <Button
         android:id="@+id/help"
         style="?android:textAppearanceSmall"

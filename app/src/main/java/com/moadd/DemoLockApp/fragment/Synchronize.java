@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.moadd.DemoLockApp.Login;
@@ -28,10 +31,9 @@ public class Synchronize extends Fragment implements NetworkStateReceiver.Networ
     SharedPreferences.Editor et;
     SharedPreferences locks;
     SharedPreferences.Editor locksEt;
-    SharedPreferences fast;
-
     private NetworkStateReceiver networkStateReceiver;
-
+ImageView iv;
+TextView tv;
     public Synchronize() {
         // Required empty public constructor
     }
@@ -48,15 +50,17 @@ public class Synchronize extends Fragment implements NetworkStateReceiver.Networ
         et = sp.edit();
         locks = getActivity().getSharedPreferences("SupplierItemsandLocks", MODE_PRIVATE);
         locksEt = locks.edit();
-        new AllLocks().execute();
-        new AllMachines().execute();
+        iv= (ImageView) v.findViewById(R.id.iv);
+        tv= (TextView) v.findViewById(R.id.tv);
+        new AllLocks().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new AllMachines().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         return v;
     }
 
     @Override
     public void networkAvailable() {
-        new AllLocks().execute();
-        new AllMachines().execute();
+        new AllLocks().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new AllMachines().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
@@ -87,13 +91,13 @@ public class Synchronize extends Fragment implements NetworkStateReceiver.Networ
 
             if (lf != null) {
                 locksEt.putString("lockDetails", lf).apply();
-                Toast.makeText(getActivity(), "All locks synced", Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getActivity(), "All locks synced", Toast.LENGTH_SHORT).show();
             }
 
         }
     }
 
-    private class AllMachines extends AsyncTask<Void, Void, String> {
+    private class AllMachines extends AsyncTask<Void, Integer, String> {
         @Override
         protected String doInBackground(Void... params) {
             try {
@@ -116,8 +120,11 @@ public class Synchronize extends Fragment implements NetworkStateReceiver.Networ
             //Toast.makeText(getActivity(),lf,Toast.LENGTH_SHORT).show();
             if (lf != null) {
                 et.putString("machinesAllData", lf).apply();
-                Toast.makeText(getActivity(), "All machines synced", Toast.LENGTH_SHORT).show();
+                iv.setBackgroundResource(R.drawable.tickticks);
+                Toast.makeText(getActivity(), "All data synced", Toast.LENGTH_SHORT).show();
+                tv.setText("All locks and machines data synced!");
             }
         }
+
     }
 }
