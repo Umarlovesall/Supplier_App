@@ -67,6 +67,26 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
     TextView data,p2,p4,p3,p1,barcode;
     Button type,settings,OpenLock;
     EditText passwordLock;
+    String timeStamp;
+    String mode;
+    String SDE="",SDE1,SDE2,SDE3,SDE4,SDE5,SDE6,SDE7,SDE8;
+    private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context ctxt, Intent intent) {
+            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            if (level<=75)
+            {
+                p3.setBackgroundColor(Color.parseColor("#FFBF00"));
+                Toast.makeText(getActivity(),"Lock Batter Low",Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                // p3.setBackgroundColor(Color.parseColor("#00ff00"));
+                p3.setBackgroundResource(R.drawable.textview_border);
+            }
+            getActivity().unregisterReceiver(mBatInfoReceiver);
+        }
+    };
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -91,11 +111,16 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         settings= (Button) v.findViewById(R.id.settings);
         AllDetails=getActivity().getSharedPreferences(Login.selectedlockBarcode,Context.MODE_PRIVATE);
         AllDetailsEt=AllDetails.edit();
+        SDE=AllDetails.getString("Date,Time and WifiLimit","");
+        timeStamp=AllDetails.getString("Date,Time and WifiLimit",null);
+        mode=Login.category;
         data.setMovementMethod(new ScrollingMovementMethod());
+        data.setText("");
         wm=(WifiManager)  getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //wm.setWifiEnabled(false);
         getActivity().registerReceiver(this.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         Toast.makeText(getActivity(),Login.selectedSecretNo,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(),timeStamp,Toast.LENGTH_SHORT).show();
         OpenLock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -127,18 +152,18 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
                 if (!Login.selectedlockBarcode.equals("XXXXXXXXX"))
                 {
                     Lock_Setup_Details fragment = new Lock_Setup_Details();
-                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.frame, fragment);
-                ft.addToBackStack(null);
-                ft.commit();
-            }
-            else
+                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                    ft.replace(R.id.frame, fragment);
+                    ft.addToBackStack(null);
+                    ft.commit();
+                }
+                else
                 {
                     Toast.makeText(getActivity(), "This is Demo lock.Choose a lock from the list of locks from the Menu first.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-        if (Login.category.equals("Operator"))
+       if (Login.category.equals("Operator"))
         {
             type.setText("Operator");
         }
@@ -158,25 +183,15 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         }*/
         if(!AllDetails.getString("Password Of the Lock","").equals(""))
         {
-         p4.setBackgroundResource(R.drawable.textview_border);
-         p1.setBackgroundColor(Color.parseColor("#00ff00"));
+            p4.setBackgroundResource(R.drawable.textview_border);
+            p1.setBackgroundColor(Color.parseColor("#00ff00"));
         }
         else
         {
             p4.setBackgroundColor(Color.parseColor("#ff0000"));
             p1.setBackgroundResource(R.drawable.textview_border);
         }
-        //Permissions for switching on/off wifi access :
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.System.canWrite(getActivity())) {
-                // Do stuff here
-            } else {
-                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        }
+
         hotutil = new wifiHotSpots(getActivity());
         String barcode_data = Login.selectedlockBarcode;
         barcode.setText(barcode_data);
@@ -349,38 +364,22 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
 
         @Override
         protected void onPostExecute(Void result) {
-           /*if (response.equals("DISCONNECT"))
-           {
-               //Disconnect wifi and switch it off
-           }
-           if(response.equals("RESET"))
-           {
-               //Reset All data except barcode details
-               Toast.makeText(getApplicationContext(),"Reset Complete",
-                       Toast.LENGTH_SHORT).show();
-               SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESSRESET");
-               s.execute();
-           }
-           else
-           {
-               if (response.equals("9839386601"))
-               {
-                   SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
-                   s.execute();
-               }
-               else
-               {
-                   SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"FAIL1");
-                   s.execute();
-               }
-           }*/
-            if (response.equals(Login.selectedSecretNo))
+            // data.setText(data.getText().toString()+ "     "+response);
+            if (response.equals(Login.selectedSecretNo) )
             {
 
-                    SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
-                    s.execute();
-                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+Login.selectedlockBarcode+" \n "+"Recieved :"+" \n "+"Secret Number : "+response);
-                    AllDetailsEt.putString("LockSerialNumber",Login.selectedlockBarcode).apply();
+                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
+                s.execute();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+Login.selectedlockBarcode+" \n "+"Recieved :"+" \n "+"Secret Number : "+response);
+                if (AllDetails.getString("LockSerialNumber","").equals("") && mode.equals("Operator")) {
+                    AllDetailsEt.putString("LockSerialNumber", Login.selectedlockBarcode).apply();
+                }
+            }
+            else if (response!=null && response.equals("DISCONNECT"))
+            {
+                    data.setText(data.getText() + " \n " + "Sent :" + " \n " + "Lock Barcodes :" + Login.selectedlockBarcode + " \n " + "Recieved :" +"Lock barcodes didn't match!"+ " \n " + response);
+                    disconnectWifi();
+
             }
             else
             {
@@ -392,6 +391,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             }
             super.onPostExecute(result);
         }
+
     }
     public class SuccessfullDataExchange extends AsyncTask<Void, Void, Void> {
 
@@ -466,157 +466,878 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
 
         @Override
         protected void onPostExecute(Void result) {
-            // textResponse.setText(response);
-            if (response.equals("DISCONNECT"))
+           /* if (response!=null && response.charAt(0)=='&' && mode.equals("Operator") && timeStamp.equals(""))
             {
-                //Disconnect wifi and switch off
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS7/SUCCESSRESET/SUCCESS3/FAIL1"+" \n "+"Recieved :"+" \n "+"DISCONNECT");
-                wm.setWifiEnabled(false);
-            }
-            else if (response!=null && response.charAt(0)=='&')
-            {
-                SuccessfullDataExchange s;
-                if ( AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("") && Login.category.equals("Operator"))
-                {
-                    //parse and save data of the setup
-                     s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS2");
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Date,Time and WifiLimit : "+response);
+                    AllDetailsEt.putString("Date,Time and WifiLimit", response.replace('&', ' ').trim()).apply();
+                    SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1",5000,"SUCCESS2");
                     s.execute();
-                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Date,Time and WifiLimit : "+response);
-                    if(AllDetails.getString("Date,Time and WifiLimit","").equals(""))
-                    {
-                        AllDetailsEt.putString("Date,Time and WifiLimit", response.replace('&', ' ').trim()).apply();
-                        s = new SuccessfullDataExchange("192.168.43.1",5000,"Operator Setup Already Done.");
-                        s.execute();
-                    }
-                }
-                else
-                {
-                    Toast.makeText(getActivity(),"Operator setup already done,reset if you want to do a new setup.",Toast.LENGTH_SHORT).show();
-                }
+            }
+            else if (response!=null && response.charAt(0)=='&' && mode.equals("Operator") && !timeStamp.equals(""))
+
+            {
+                SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1",5000,"Operator Setup Already Done.");
+                s.execute();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Operator Setup Already Done.");
+            }
+            else    if (response!=null && response.charAt(0)=='&' && mode.equals("Supplier"))
+            {
+                SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1",5000,"FAIL2");
+                s.execute();
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Don't try to Connect lock app in Supplier mode to Operator App! ");
 
             }
-            else if (response!=null && response.charAt(0)=='%')
+            else if (response!=null && response.charAt(0)=='^' && mode.equals("Supplier"))
             {
                 //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS3");
-                s.execute();
-                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS2"+" \n "+"Recieved :"+" \n "+"Operator Id and App Id : "+response);
-                if (AllDetails.getString("Operator Id and App Id","").equals(""))
-                {
-                    AllDetailsEt.putString("Operator Id and App Id", response.replace('%', ' ').trim()).apply();
-                }
-            }
-            else if (response!=null && response.charAt(0)=='$')
-            {
-                //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS4");
-                s.execute();
-                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS3"+" \n "+"Recieved :"+" \n "+"Operator Hotspot Details : "+response);
-                if (AllDetails.getString("Operator Hotspot Details","").equals(""))
-                {
-                    AllDetailsEt.putString("Operator Hotspot Details", response.replace('$', ' ').trim()).apply();
-                }
-            }
-            else if (response!=null && response.charAt(0)=='@')
-            {
-                //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS5");
-                s.execute();
-                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS4"+" \n "+"Recieved :"+" \n "+"Supplier Hotspot Details : "+response);
-                if (AllDetails.getString("Supplier Hotspot Details","").equals("")) {
-                    AllDetailsEt.putString("Supplier Hotspot Details", response.replace('@', ' ').trim()).apply();
-                }
-            }
-            else if (response!=null && response.charAt(0)=='!')
-            {
-                //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS6");
-                s.execute();
-                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS5"+" \n "+"Recieved :"+" \n "+"Connected Suppliers IDs and App IDs : "+response);
-                if (AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("")){
-                AllDetailsEt.putString("Connected Suppliers IDs and App IDs",response.replace('!',' ').trim()).apply();
-                }
-            }
-            //Responses for Supplier App :
-            else if (response!=null && response.charAt(0)=='^')
-            {
-                //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS2");
+                SuccessfullDataExchange7 s = new SuccessfullDataExchange7("192.168.43.1",5000,"SUCCESS2");
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Supplier IDs(Coming via supplier app connection) : "+response);
-              if(AllDetails.getString("Supplier IDs(Coming via supplier app connection)","").equals("")) {
-                  AllDetailsEt.putString("Supplier IDs(Coming via supplier app connection)", response.replace('^', ' ').trim()).apply();
-              }
+                if(AllDetails.getString("Supplier IDs(Coming via supplier app connection)","").equals("")) {
+                    AllDetailsEt.putString("Supplier IDs(Coming via supplier app connection)", response.replace('^', ' ').trim()).apply();
+                }
             }
-            else if (response!=null && response.charAt(0)=='~')
+            else if (response!=null && response.charAt(0)=='^' && mode.equals("Operator"))
             {
                 //parse and save data of the setup
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS3");
+                SuccessfullDataExchange7 s = new SuccessfullDataExchange7("192.168.43.1",5000,"FAIL2");
                 s.execute();
                 //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS2"+" \n "+"Recieved"+" \n "+"Password Of the Lock : "+response);
-                if (AllDetails.getString("Password Of the Lock","").equals("")) {
-                    AllDetailsEt.putString("Password Of the Lock", response.replace('~', ' ').trim()).apply();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Don't try to Connect lock app in Operator mode to Supplier App! ");
+            }
+            else if (response!=null && response.equals("DISCONNECT"))
+            {
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL1"+" \n "+"Recieved :"+" \n "+response);
+                disconnectWifi();
+            }*/
+
+            if (response!=null && response.charAt(0)=='&' && Login.category.equals("Operator"))
+            {
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+
+                if(AllDetails.getString("Date,Time and WifiLimit","").equals("")) {
+                    AllDetailsEt.putString("Date,Time and WifiLimit", response.replace('&', ' ').trim()).apply();
                 }
-               /* else
+                    SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1", 5000, "SUCCESS2");
+                    data.setText(data.getText() + " \n " + "Sent :" + " \n " + "SUCCESS1" + " \n " + "Recieved :" + " \n " + "Date,Time and WifiLimit : " + response);
+                    s.execute();
+                //}
+                /*else
                 {
-                    Toast.makeText(getActivity(),"Lock Already Filled!",Toast.LENGTH_SHORT).show();
+                    SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1",5000,"Operator Setup Already Done.");
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Operator Setup Already Done!");
+                    s.execute();
                 }*/
             }
-            else if (response.equals("RESET"))
+            else    if (response!=null && response.charAt(0)=='&' && Login.category.equals("Supplier"))
             {
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESSRESET");
+                SuccessfullDataExchange1 s = new SuccessfullDataExchange1("192.168.43.1",5000,"FAIL2");
                 s.execute();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Reset command : "+response);
-                AllDetailsEt.putString("Connected Suppliers IDs and App IDs","").apply();
-                AllDetailsEt.putString("Date,Time and WifiLimit","").apply();
-                AllDetailsEt.putString("Password Of the Lock","").apply();
-                AllDetailsEt.putString("Supplier IDs(Coming via supplier app connection)","").apply();
-                AllDetailsEt.putString("Supplier Hotspot Details","").apply();
-                AllDetailsEt.putString("Operator Hotspot Details","").apply();
-                AllDetailsEt.putString("Operator Id and App Id","").apply();
-                p4.setBackgroundColor(Color.parseColor("#ff0000"));
-                p1.setBackgroundResource(R.drawable.textview_border);
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Don't try to Connect lock app in Supplier mode to Operator App!");
+
             }
-            else if (response!=null && response.charAt(0)=='-')
+            else if (response!=null && response.charAt(0)=='^' && Login.category.equals("Supplier"))
             {
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS7");
+                //parse and save data of the setup
+                SuccessfullDataExchange7 s = new SuccessfullDataExchange7("192.168.43.1",5000,"SUCCESS2");
                 s.execute();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS6"+" \n "+"Recieved :"+" \n "+"Barcode Image transfer done");
-              /* InputStream stream = new ByteArrayInputStream(Base64.decode(response.replace('-',' ').trim().getBytes(), Base64.DEFAULT));
-                Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                iv.setImageBitmap(bitmap);*/
-                // barcode image
-                //Toast.makeText(getActivity(),response.replace('-',' ').trim(),Toast.LENGTH_SHORT).show();
-              /*  Bitmap bitmap = null;
-                try {
-
-                    bitmap = encodeAsBitmap(barcode_data, BarcodeFormat.CODE_128, 600, 300);
-                    iv.setImageBitmap(bitmap);
-
-                } catch (WriterException e) {
-                    e.printStackTrace();
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Supplier IDs(Coming via supplier app connection) : "+response);
+                if(AllDetails.getString("Supplier IDs(Coming via supplier app connection)","").equals("")) {
+                    AllDetailsEt.putString("Supplier IDs(Coming via supplier app connection)", response.replace('^', ' ').trim()).apply();
                 }
-*/
-               /* try {
-                    JSONObject j=new JSONObject(response.replace('-',' ').trim());
-                    InputStream stream = new ByteArrayInputStream(Base64.decode(j.getString("data").getBytes(), Base64.DEFAULT));
-                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                    iv.setImageBitmap(bitmap);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }*/
+            }
+            else if (response!=null && response.charAt(0)=='^' && Login.category.equals("Operator"))
+            {
+                //parse and save data of the setup
+                SuccessfullDataExchange7 s = new SuccessfullDataExchange7("192.168.43.1",5000,"FAIL2");
+                s.execute();
+                //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS1"+" \n "+"Recieved :"+" \n "+"Don't try to Connect lock app in Operator mode to Supplier App!");
+            }
+            else if (response!=null && response.equals("DISCONNECT"))
+            {
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL1"+" \n "+"Recieved :"+" \n "+response);
+                disconnectWifi();
+            }
 
+            super.onPostExecute(result);
+        }
+    }
+        public class SuccessfullDataExchange1 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange1(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                // data.setText(response);
+                if (response!=null && response.charAt(0)=='%')
+                {
+                    //parse and save data of the setup
+                    SuccessfullDataExchange2 s = new SuccessfullDataExchange2("192.168.43.1",5000,"SUCCESS3");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS2"+" \n "+"Recieved :"+" \n "+"Operator Id and App Id : "+response);
+                    if (AllDetails.getString("Operator Id and App Id","").equals(""))
+                    {
+                        AllDetailsEt.putString("Operator Id and App Id", response.replace('%', ' ').trim()).apply();
+                    }
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL2"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange2 s = new SuccessfullDataExchange2("192.168.43.1",5000,"FAIL3");
+                    s.execute();
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange2 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange2(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                // data.setText(response);
+                if (response!=null && response.charAt(0)=='$')
+                {
+                    //parse and save data of the setup
+                    SuccessfullDataExchange3 s = new SuccessfullDataExchange3("192.168.43.1",5000,"SUCCESS4");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS3"+" \n "+"Recieved :"+" \n "+"Operator Hotspot Details : "+response);
+                    if (AllDetails.getString("Operator Hotspot Details","").equals(""))
+                    {
+                        AllDetailsEt.putString("Operator Hotspot Details", response.replace('$', ' ').trim()).apply();
+                    }
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL3"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange3 s = new SuccessfullDataExchange3("192.168.43.1",5000,"FAIL4");
+                    s.execute();
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange3 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange3(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                if (response!=null && response.charAt(0)=='@')
+                {
+                    //parse and save data of the setup
+                    SuccessfullDataExchange4 s = new SuccessfullDataExchange4("192.168.43.1",5000,"SUCCESS5");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS4"+" \n "+"Recieved :"+" \n "+"Supplier Hotspot Details : "+response);
+                    if (AllDetails.getString("Supplier Hotspot Details","").equals("")) {
+                        AllDetailsEt.putString("Supplier Hotspot Details", response.replace('@', ' ').trim()).apply();
+                    }
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL4"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange4 s = new SuccessfullDataExchange4("192.168.43.1",5000,"FAIL5");
+                    s.execute();
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange4 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange4(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                // data.setText(response);
+                if (response!=null && response.charAt(0)=='!')
+                {
+                    //parse and save data of the setup
+                    SuccessfullDataExchange5 s = new SuccessfullDataExchange5("192.168.43.1",5000,"SUCCESS6");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS5"+" \n "+"Recieved :"+" \n "+"Connected Suppliers IDs and App IDs : "+response);
+                    if (AllDetails.getString("Connected Suppliers IDs and App IDs","").equals("")){
+                        AllDetailsEt.putString("Connected Suppliers IDs and App IDs",response.replace('!',' ').trim()).apply();
+                    }
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL5"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange5 s = new SuccessfullDataExchange5("192.168.43.1",5000,"FAIL6");
+                    s.execute();
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange5 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange5(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                // data.setText(response);
+                if (response!=null && response.charAt(0)=='-' )
+                {
+                    SuccessfullDataExchange6 s = new SuccessfullDataExchange6("192.168.43.1",5000,"SUCCESS7");
+                    s.execute();
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS6"+" \n "+"Recieved :"+" \n "+"Barcode Image transfer done");
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL6"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange6 s = new SuccessfullDataExchange6("192.168.43.1",5000,"FAIL7");
+                    s.execute();
+                }
+                if (!SDE.equals(""))
+                {
+                    data.setText("Operator Setup Already Present.First reset the lock in order to setup again!");
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange6 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange6(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                // data.setText(response);
+                if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS7/FAIL7"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                    //Do all the saving here
+                }
+                super.onPostExecute(result);
+            }
+        }
+        public class SuccessfullDataExchange7 extends AsyncTask<Void, Void, Void> {
+
+            String dstAddress;
+            int dstPort;
+            String response = "";
+            String msgToServer;
+
+            SuccessfullDataExchange7(String addr, int port, String msgTo) {
+                dstAddress = addr;
+                dstPort = port;
+                msgToServer = msgTo;
+            }
+
+            @Override
+            protected Void doInBackground(Void... arg0) {
+
+                Socket socket = null;
+                DataOutputStream dataOutputStream = null;
+                DataInputStream dataInputStream = null;
+
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+
+                    if (msgToServer != null) {
+                        dataOutputStream.writeUTF(msgToServer);
+                    }
+
+                    response = dataInputStream.readUTF();
+
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "UnknownHostException: " + e.toString();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    response = "IOException: " + e.toString();
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataOutputStream != null) {
+                        try {
+                            dataOutputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (dataInputStream != null) {
+                        try {
+                            dataInputStream.close();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                if (response != null && response.charAt(0) == '~') {
+                    //parse and save data of the setup
+                    SuccessfullDataExchange8 s = new SuccessfullDataExchange8("192.168.43.1", 5000, "SUCCESS3");
+                    s.execute();
+                    //Toast.makeText(Client.this,response,Toast.LENGTH_LONG).show();
+                    data.setText(data.getText() + " \n " + "Sent :" + " \n " + "SUCCESS2" + " \n " + "Recieved" + " \n " + "Password Of the Lock : " + response);
+                    /*if (AllDetails.getString("Password Of the Lock", "").equals("") )
+                    {
+                        AllDetailsEt.putString("Password Of the Lock", response.replace('~', ' ').trim()).apply();
+                    }*/
+                     if (AllDetails.getString("Password Of the Lock", "").equals("") ) {
+                        if (!SDE.equals(""))
+                        {
+                            AllDetailsEt.putString("Password Of the Lock", response.replace('~', ' ').trim()).apply();
+                        }
+                        else
+                        {
+                            data.setText("Complete the lock setup via operator app first!");
+                        }
+                    }
+                    else
+                    {
+                        data.setText("Lock Is already Filled!");
+                    }
+                }
+                else if (response!=null && response.equals("DISCONNECT"))
+                {
+                    data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL1"+" \n "+"Recieved :"+" \n "+response);
+                    disconnectWifi();
+                }
+                else
+                {
+                    SuccessfullDataExchange8 s = new SuccessfullDataExchange8("192.168.43.1", 5000, "FAIL3");
+                    s.execute();
+                }
+                if (SDE.equals(""))
+                {
+
+                }
+                super.onPostExecute(result);
+            }
+        }
+    public class SuccessfullDataExchange8 extends AsyncTask<Void, Void, Void> {
+
+        String dstAddress;
+        int dstPort;
+        String response = "";
+        String msgToServer;
+
+        SuccessfullDataExchange8(String addr, int port, String msgTo) {
+            dstAddress = addr;
+            dstPort = port;
+            msgToServer = msgTo;
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            Socket socket = null;
+            DataOutputStream dataOutputStream = null;
+            DataInputStream dataInputStream = null;
+
+            try {
+                socket = new Socket(dstAddress, dstPort);
+                dataOutputStream = new DataOutputStream(
+                        socket.getOutputStream());
+                dataInputStream = new DataInputStream(socket.getInputStream());
+
+                if (msgToServer != null) {
+                    dataOutputStream.writeUTF(msgToServer);
+                }
+
+                response = dataInputStream.readUTF();
+
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                response = "UnknownHostException: " + e.toString();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                response = "IOException: " + e.toString();
+            } finally {
+                if (socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                if (dataOutputStream != null) {
+                    try {
+                        dataOutputStream.close();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                if (dataInputStream != null) {
+                    try {
+                        dataInputStream.close();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if (response!=null && response.equals("DISCONNECT"))
+            {
+                data.setText(data.getText()+" \n "+"Sent :"+" \n "+"SUCCESS3/FAIL3"+" \n "+"Recieved :"+" \n "+response);
+                disconnectWifi();
             }
             super.onPostExecute(result);
         }
     }
+
     public void connectToDefaultWifi(){
         try{
             WifiManager wifiManager = (WifiManager) super.getActivity().getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
@@ -705,18 +1426,23 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         } catch (Exception e) {
             e.printStackTrace();
         }
+       /* HomeFragment fragment = new HomeFragment();
+        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.frame, fragment);
+        //ft.addToBackStack(null);
+        ft.commit();*/
     }
-   /* public  void wifiAccess(){
-       WifiManager wifiManager = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-         WifiConfiguration config = new WifiConfiguration();
-        config.SSID = "\"xxx\"";
-        config.preSharedKey = "\"123\"";
-        if (!wifiManager.isWifiEnabled()){
-            wifiManager.setWifiEnabled(true);
-            int networkId = WifiManager.addNetwork(config);
-            WifiManager.enableNetwork(networkId, true);
-        }
-    }*/
+    /* public  void wifiAccess(){
+        WifiManager wifiManager = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+          WifiConfiguration config = new WifiConfiguration();
+         config.SSID = "\"xxx\"";
+         config.preSharedKey = "\"123\"";
+         if (!wifiManager.isWifiEnabled()){
+             wifiManager.setWifiEnabled(true);
+             int networkId = WifiManager.addNetwork(config);
+             WifiManager.enableNetwork(networkId, true);
+         }
+     }*/
     public void joinFriend(final WifiStatus wifiStatus, final wifiHotSpots hotutil) {
         if (wifiStatus.checkWifi(wifiStatus.IS_WIFI_ON)) {
             hotutil.scanNetworks();
@@ -782,31 +1508,18 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
     @Override
     public void networkAvailable()
     {
-        MyClientTask myClientTask = new MyClientTask("192.168.43.1",5000,Login.selectedlockBarcode);
-        myClientTask.execute();
-        wifi.setText("Click to turn OFF Wi Fi");
-        p2.setBackgroundColor(Color.parseColor("#0000ff"));
+        if(!Login.selectedlockBarcode.equals("XXXXXXXXX")) {
+            MyClientTask myClientTask = new MyClientTask("192.168.43.1", 5000, Login.selectedlockBarcode);
+            myClientTask.execute();
+            wifi.setText("Click to turn OFF Wi Fi");
+            p2.setBackgroundColor(Color.parseColor("#0000ff"));
+            timeStamp=AllDetails.getString("Date,Time and WifiLimit","");
+        }
     }
     @Override
     public void networkUnavailable() {
         wifi.setText("Click to turn ON Wi Fi");
         p2.setBackgroundResource(R.drawable.textview_border);
     }
-    private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
-        @Override
-        public void onReceive(Context ctxt, Intent intent) {
-            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            if (level<=75)
-            {
-p3.setBackgroundColor(Color.parseColor("#FFBF00"));
-Toast.makeText(getActivity(),"Lock Batter Low",Toast.LENGTH_SHORT).show();
-            }
-            else
-            {
-               // p3.setBackgroundColor(Color.parseColor("#00ff00"));
-                p3.setBackgroundResource(R.drawable.textview_border);
-            }
-            getActivity().unregisterReceiver(mBatInfoReceiver);
-        }
-    };
+
 }
