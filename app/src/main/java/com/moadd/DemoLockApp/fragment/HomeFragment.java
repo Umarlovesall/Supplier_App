@@ -69,7 +69,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
     EditText passwordLock;
     String timeStamp;
     String mode;
-    String SDE="",SDE1,SDE2,SDE3,SDE4,SDE5,SDE6,SDE7,SDE8;
+    String SDE="",SDE1,SDE2,SDE3,SDE4,SDE5,SDE6,SDE7,SDE8,SAVEDpASSWORD="";
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context ctxt, Intent intent) {
@@ -112,6 +112,7 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
         AllDetails=getActivity().getSharedPreferences(Login.selectedlockBarcode,Context.MODE_PRIVATE);
         AllDetailsEt=AllDetails.edit();
         SDE=AllDetails.getString("Date,Time and WifiLimit","");
+        SAVEDpASSWORD=AllDetails.getString("Password Of the Lock","");
         timeStamp=AllDetails.getString("Date,Time and WifiLimit",null);
         mode=Login.category;
         data.setMovementMethod(new ScrollingMovementMethod());
@@ -367,12 +368,24 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             // data.setText(data.getText().toString()+ "     "+response);
             if (response.equals(Login.selectedSecretNo) )
             {
-
-                SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1",5000,"SUCCESS1");
-                s.execute();
-                data.setText(data.getText()+" \n "+"Sent :"+" \n "+Login.selectedlockBarcode+" \n "+"Recieved :"+" \n "+"Secret Number : "+response);
-                if (AllDetails.getString("LockSerialNumber","").equals("") && mode.equals("Operator")) {
-                    AllDetailsEt.putString("LockSerialNumber", Login.selectedlockBarcode).apply();
+                if ( SAVEDpASSWORD.equals("") ) {
+                    SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1", 5000, "SUCCESS1");
+                    s.execute();
+                    data.setText(data.getText() + " \n " + "Sent :" + " \n " + Login.selectedlockBarcode + " \n " + "Recieved :" + " \n " + "Secret Number : " + response);
+                    if (AllDetails.getString("LockSerialNumber", "").equals("") && mode.equals("Operator")) {
+                        AllDetailsEt.putString("LockSerialNumber", Login.selectedlockBarcode).apply();
+                    }
+                }
+                else
+                {
+                    SuccessfullDataExchange s = new SuccessfullDataExchange("192.168.43.1", 5000, "FAIL1");
+                    s.execute();
+                    data.setText(data.getText() + " \n " + "Sent :" + " \n " + Login.selectedlockBarcode + " \n " + "Recieved :" + " \n " + "Secret Number : " + response);
+                if (!SAVEDpASSWORD.equals(""))
+                {
+                  data.setText("Lock is already filled!");
+                  disconnectWifi();
+                }
                 }
             }
             else if (response!=null && response.equals("DISCONNECT"))
@@ -563,6 +576,10 @@ public class HomeFragment extends Fragment implements NetworkStateReceiver.Netwo
             {
                 data.setText(data.getText()+" \n "+"Sent :"+" \n "+"FAIL1"+" \n "+"Recieved :"+" \n "+response);
                 disconnectWifi();
+                if (!SAVEDpASSWORD.equals(""))
+                {
+                   data.setText("Lock is already filled!");
+                }
             }
 
             super.onPostExecute(result);
